@@ -28,8 +28,8 @@ app.use(cors());
 app.use(morgan('dev'));
 
 //app routes
-app.use(errorMiddleware);
 app.use(authRouter);
+app.use(errorMiddleware);
 
 //start server
 const server = module.exports = app.listen(PORT, () => {

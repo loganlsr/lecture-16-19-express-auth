@@ -20,6 +20,27 @@ const exampleUser = {
 
 describe('testing auth router', function(){
 
+  before( done => {
+    if (!server.isRunning){
+      server.listen(process.env.PORT, () => {
+        console.log('server up');
+        done();
+      });
+      return;
+    }
+  });
+
+  after( done => {
+    if (server.isRunning){
+      server.close(err => {
+        if (err) return done(err);
+        console.log('server down');
+        done();
+      });
+      return;
+    }
+  });
+
   describe('testing POST /api/signup', function(){
 
     describe('with valid body', function(){
@@ -86,10 +107,7 @@ describe('testing auth router', function(){
         let user = new User(exampleUser);
         user.generatePasswordHash(exampleUser.password)
         .then( user => user.save())
-        .then( user => {
-          this.tempuser = user;
-          done();
-        })
+        .then( () => done())
         .catch(done);
       });
 
