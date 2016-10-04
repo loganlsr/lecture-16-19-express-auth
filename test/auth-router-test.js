@@ -8,6 +8,8 @@ const User = require('../model/user.js');
 
 const server = require('../server.js');
 
+mongoose.Promise = Promise;
+
 const url = `http://localhost:${process.env.PORT}`;
 
 const exampleUser = {
@@ -33,11 +35,45 @@ describe('testing auth router', function(){
         .send(exampleUser)
         .end((err, res) => {
           if (err) return done(err);
-          console.log('res.text', res.text);
           expect(res.status).to.equal(200);
           expect(!!res.text).to.equal(true);
           done();
         });
+      });
+    });
+    describe('with invalid body', function(){
+
+      after( done => {
+        User.remove({})
+        .then( () => done())
+        .catch(done);
+      });
+
+      it('should return a token', (done) => {
+        request.post(`${url}/api/signup`)
+        .send(exampleUser)
+        .end((err, res) => {
+          if (err) return done(err);
+          expect(res.status).to.equal(401);
+          expect(!!res.text).to.equal(true);
+          done();
+        });
+      });
+    });
+
+    describe('with bad path', function(){
+
+      it('should return a token', (done) => {
+        request.get(`${url}/api/badpath`)
+        .auth('logan', '12345')
+        .end((err, res) => {
+          if (err) return done(err);
+          console.log('res.text', res.text);
+          expect(res.status).to.equal(400);
+          expect(!!res.text).to.equal(true);
+          done();
+        });
+        done();
       });
     });
   });
@@ -70,6 +106,55 @@ describe('testing auth router', function(){
           if (err) return done(err);
           console.log('res.text', res.text);
           expect(res.status).to.equal(200);
+          expect(!!res.text).to.equal(true);
+          done();
+        });
+        done();
+      });
+    });
+
+    describe('with invalid body', function(){
+
+      before( done => {
+        let user = new User(exampleUser);
+        user.generatePasswordHash(exampleUser.password)
+        .then( user => user.save())
+        .then( user => {
+          this.tempuser = user;
+          done();
+        })
+        .catch(done);
+      });
+
+      after( done => {
+        User.remove({})
+        .then( () => done())
+        .catch(done);
+      });
+
+      it('should return a token', (done) => {
+        request.get(`${url}/api/login`)
+        .auth('logan', '12345')
+        .end((err, res) => {
+          if (err) return done(err);
+          console.log('res.text', res.text);
+          expect(res.status).to.equal(200);
+          expect(!!res.text).to.equal(true);
+          done();
+        });
+        done();
+      });
+    });
+
+    describe('with bad path', function(){
+
+      it('should return a token', (done) => {
+        request.get(`${url}/api/badpath`)
+        .auth('logan', '12345')
+        .end((err, res) => {
+          if (err) return done(err);
+          console.log('res.text', res.text);
+          expect(res.status).to.equal(400);
           expect(!!res.text).to.equal(true);
           done();
         });
