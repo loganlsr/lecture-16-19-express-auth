@@ -23,6 +23,12 @@ const exampleGallery = {
   name: 'beach fun',
   desc: 'too much sand',
 };
+
+const updateGallery = {
+  name: 'updated name',
+  desc: 'updated desc',
+};
+
 mongoose.Promise = Promise;
 
 describe('test /api/gallery', function(){
@@ -49,21 +55,6 @@ describe('test /api/gallery', function(){
     }
   });
 
-  beforeEach( done => {
-    new User(exampleUser)
-    .generatePasswordHash(exampleUser.password)
-    .then( user => user.save())
-    .then( user => {
-      this.tempUser = user;
-      return user.generateToken();
-    })
-    .then( token => {
-      this.tempToken = token;
-      done();
-    })
-    .catch(done);
-  });
-
   afterEach( done => {
     Promise.all([
       User.remove({}),
@@ -75,6 +66,21 @@ describe('test /api/gallery', function(){
 
   describe('testing POST to /api/gallery', () =>{
 
+    before( done => {
+      new User(exampleUser)
+      .generatePasswordHash(exampleUser.password)
+      .then( user => user.save())
+      .then( user => {
+        this.tempUser = user;
+        return user.generateToken();
+      })
+      .then( token => {
+        this.tempToken = token;
+        done();
+      })
+      .catch(done);
+    });
+
     it('should return a gallery', done => {
       request.post(`${url}/api/gallery`)
       .send(exampleGallery)
@@ -85,10 +91,86 @@ describe('test /api/gallery', function(){
         if(err) return done(err);
         expect(res.body.name).to.equal(exampleGallery.name);
         expect(res.body.desc).to.equal(exampleGallery.desc);
-        expect(res.body.userID).to.equal(this.tempUser._id);
+        expect(res.body.userID).to.equal(this.tempUser._id.toString());
+        let date = new Date(res.body.created).toString();
+        expect(date).to.not.equal('Invalid Date');
+        done();
+      });
+    });
+
+    it('should return a status of 400 for invalid or no body', done => {
+      request.post(`${url}/api/gallery`)
+      .set('Content-Type', 'application/json')
+      .set({
+        Authorization: `Bearer ${this.tempToken}`,
+      })
+      .send('bad parse')
+      .end((err, res) => {
+        expect(res.status).to.equal(400);
+        done();
+      });
+    });
+
+    it('should return a status of 401', done => {
+      request.post(`${url}/api/gallery`)
+      .set({
+        Authorization: 'Bearer ',
+      })
+      .send(exampleGallery)
+      .end((err, res) => {
+        expect(res.status).to.equal(401);
+        done();
+      });
+    });
+  });
+
+  describe('testing GET to /api/gallery', () =>{
+
+    before( done => {
+      new User(exampleUser)
+      .generatePasswordHash(exampleUser.password)
+      .then( user => user.save())
+      .then( user => {
+        this.tempUser = user;
+        return user.generateToken();
+      })
+      .then( token => {
+        this.tempToken = token;
+        done();
+      })
+      .catch(done);
+    });
+
+    before( done => {
+      exampleGallery.userID = this.tempUser._id.toString();
+      new Gallery(exampleGallery).save()
+      .then( gallery => {
+        this.tempGallery = gallery;
+        done();
+      })
+      .catch(done);
+    });
+
+    after( () => {
+      delete exampleGallery.userID;
+    });
+
+    it('should return a gallery/:id', done => {
+      request.get(`${url}/api/gallery/${this.tempGallery._id}`)
+      .set({
+        Authorization: `Bearer ${this.tempToken}`,
+      })
+      .end((err, res) => {
+        if(err) return done(err);
+        expect(res.body.name).to.equal(exampleGallery.name);
+        expect(res.body.desc).to.equal(exampleGallery.desc);
+        expect(res.body.userID).to.equal(this.tempUser._id.toString());
+        let date = new Date(res.body.created).toString();
+        expect(date).to.not.equal('Invalid Date');
         done();
       });
     });
 
   });
+
 });

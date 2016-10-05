@@ -11,6 +11,7 @@ const mongoose = require('mongoose');
 
 //app modules
 const errorMiddleware = require('./lib/error-middleware.js');
+const galleryRouter = require('./route/gallery-router.js');
 const authRouter = require('./route/auth-router.js');
 //load env vars
 dotenv.load();
@@ -29,6 +30,7 @@ app.use(morgan('dev'));
 
 //app routes
 app.use(authRouter);
+app.use(galleryRouter);
 app.use(errorMiddleware);
 
 //start server
