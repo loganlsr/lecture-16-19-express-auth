@@ -24,11 +24,6 @@ const exampleGallery = {
   desc: 'too much sand',
 };
 
-const updateGallery = {
-  name: 'updated name',
-  desc: 'updated desc',
-};
-
 mongoose.Promise = Promise;
 
 describe('test /api/gallery', function(){
@@ -170,7 +165,5 @@ describe('test /api/gallery', function(){
         done();
       });
     });
-
   });
-
 });

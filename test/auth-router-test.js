@@ -4,6 +4,8 @@ const expect = require('chai').expect;
 const request = require('superagent');
 const Promise = require('bluebird');
 const mongoose = require('mongoose');
+
+const Gallery = require('../model/gallery.js');
 const User = require('../model/user.js');
 
 const server = require('../server.js');
@@ -40,6 +42,15 @@ describe('testing auth router', function(){
       });
       return;
     }
+  });
+
+  afterEach( done => {
+    Promise.all([
+      User.remove({}),
+      Gallery.remove({}),
+    ])
+    .then( () => done())
+    .catch(done);
   });
 
   describe('testing POST /api/signup', function(){

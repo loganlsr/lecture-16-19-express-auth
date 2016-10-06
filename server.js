@@ -6,13 +6,14 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const express = require('express');
 const Promise = require('bluebird');
-const debug = require('debug')('something:server');
 const mongoose = require('mongoose');
+const debug = require('debug')('something:server');
 
 //app modules
 const errorMiddleware = require('./lib/error-middleware.js');
 const galleryRouter = require('./route/gallery-router.js');
 const authRouter = require('./route/auth-router.js');
+const picRouter = require('./route/pic-router.js');
 //load env vars
 dotenv.load();
 
@@ -29,6 +30,7 @@ app.use(cors());
 app.use(morgan('dev'));
 
 //app routes
+app.use(picRouter);
 app.use(authRouter);
 app.use(galleryRouter);
 app.use(errorMiddleware);
